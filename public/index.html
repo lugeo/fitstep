@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitStep</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FitStep</h1>
+            <a href="settings.html" class="nav-button">⚙️ Réglages</a>
+        </div>
+
+        <div class="timer-container">
+            <div class="timer-circle">
+                <div class="timer-display">
+                    <span id="timer">0:00</span>
+                </div>
+
+                <div class="status-display">
+                    <div class="phase-display">
+                        <span id="phase">En attente</span>
+                    </div>
+                    <div class="round-display">
+                        <span id="round">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="startBtn" class="control-button">Démarrer</button>
+                <button id="resetBtn" class="control-button">Réinitialiser</button>
+                <button id="soundToggle" class="control-button">🔊</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
