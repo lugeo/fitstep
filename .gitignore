@@ -1,2 +1,21 @@
-ginode_modules
-node_modules
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.db
+
+# Virtual Environment
+venv/
+env/
+
+# Node
+node_modules/
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+
+# Miscellaneous
+.DS_Store
+docs/
