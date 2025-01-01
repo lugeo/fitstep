@@ -228,12 +228,306 @@ class HIITTimer {
         this.soundToggle.textContent = this.soundEnabled ? '🔊' : '🔇';
     }
 
+    static SOUND_FILES = {
+        warmup: 'sounds/warmup-end.mp3',
+        cooldown: 'sounds/cooldown-start.mp3',
+        walk: 'sounds/countdown.mp3',
+        sprint: 'sounds/sprint.mp3',
+        complete: 'sounds/complete.mp3'
+    };    nextPhase() {
+            if (this.currentPhase === 'warmup') {
+                this.currentPhase = 'walk';
+                this.currentTime = this.getPhaseTime('walk');
+                this.currentRound = 1;
+            } else if (this.currentPhase === 'walk') {
+                this.currentPhase = 'sprint';
+                this.currentTime = this.getPhaseTime('sprint');
+            } else if (this.currentPhase === 'sprint') {
+                if (this.currentRound < this.getCurrentSequenceCycles()) {
+                    this.currentPhase = 'walk';
+                    this.currentTime = this.getPhaseTime('walk');
+                    this.currentRound++;
+                } else if (this.currentSequence < this.sequences.length - 1) {
+                    // Passer à la séquence suivante
+                    this.currentSequence++;
+                    this.currentPhase = 'walk';
+                    this.currentTime = this.getPhaseTime('walk');
+                    this.currentRound = 1;
+                } else {
+                    this.currentPhase = 'cooldown';
+                    this.currentTime = this.getPhaseTime('cooldown');
+                }
+            } else if (this.currentPhase === 'cooldown') {
+                this.pause();
+                this.currentPhase = 'finished';
+                this.currentTime = 0;
+                
+                // Jouer le son de fin d'entraînement
+                if (this.soundEnabled) {
+                    this.currentPhase = 'complete';
+                    this.playSound();
+                    this.currentPhase = 'finished';
+                }
+                
+                this.updateDisplay();
+                return;
+            }
+    
+            if (this.soundEnabled) {
+                this.playSound();
+            }
+    
+            this.updateDisplay();
+        }
+
+    static preloadSounds() {
+        if (!this.soundCache) {
+            this.soundCache = {};
+            Object.entries(this.SOUND_FILES).forEach(([key, path]) => {
+                const audio = new Audio(path);
+                audio.preload = 'auto';
+                this.soundCache[key] = audio;
+            });    playSound() {
+                    console.log('DEBUG: playSound called');
+                    console.log('Current phase:', this.currentPhase);
+                    console.log('Sound enabled:', this.soundEnabled);
+                    
+                    // Vérifier si le son est activé
+                    if (!this.soundEnabled) {
+                        console.log('Son désactivé');
+                        return;
+                    }
+            
+                    // Sélectionner le fichier son approprié
+                    const soundFile = this.constructor.SOUND_FILES[this.currentPhase] || 'sounds/countdown.mp3';
+                    console.log(`Tentative de lecture du son pour la phase: ${this.currentPhase}`, soundFile);
+            
+                    // Vérifier l'existence du fichier son dans le cache
+                    console.log('Sound cache:', this.constructor.soundCache);
+                    console.log('Sound in cache:', this.constructor.soundCache?.[this.currentPhase]);
+            
+                    try {
+                        // Utiliser le son préchargé ou créer un nouvel objet Audio
+                        let audio;
+                        if (this.constructor.soundCache && this.constructor.soundCache[this.currentPhase]) {
+                            // Cloner le son préchargé pour éviter les problèmes de réutilisation
+                            audio = this.constructor.soundCache[this.currentPhase].cloneNode();
+                        } else {
+                            // Créer un nouvel objet Audio si pas de préchargement
+                            audio = new Audio(soundFile);
+                        }
+            
+                        // Configurer le volume
+                        audio.volume = 0.5;
+            
+                        // Gestionnaire d'erreurs audio
+                        audio.addEventListener('error', (e) => {
+                            console.error(`ERREUR CRITIQUE - Erreur audio pour ${soundFile} :`, e);
+                        });
+            
+                        // Vérifier si le fichier audio existe
+                        audio.addEventListener('loadedmetadata', () => {
+                            console.log(`Métadonnées chargées pour ${soundFile}`);
+                            console.log('Audio duration:', audio.duration);
+                            console.log('Audio src:', audio.src);
+                        });
+            
+                        audio.addEventListener('canplaythrough', () => {
+                            console.log(`Prêt à jouer ${soundFile}`);
+                        });
+            
+                        // Tenter de jouer le son
+                        const playPromise = audio.play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                console.log(`SUCCÈS - Son ${soundFile} joué avec succès`);
+                            }).catch((error) => {
+                                console.warn(`ÉCHEC - Impossible de jouer le son ${soundFile} :`, error);
+                                
+                                // Gestion détaillée des erreurs
+                                switch(error.name) {
+                                    case 'NotAllowedError':
+                                        console.log('ERREUR - Lecture audio bloquée. Assurez-vous d\'une interaction utilisateur.');
+                                        break;
+                                    case 'NotSupportedError':
+                                        console.log('ERREUR - Format sonore non supporté.');
+                                        break;
+                                    default:
+                                        console.log('ERREUR - Erreur inattendue de lecture audio.');
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        console.error('ERREUR CRITIQUE - Erreur de configuration audio :', error);
+                    }
+                }    playSound() {
+                        console.log('DEBUG: playSound called');
+                        console.log('Current phase:', this.currentPhase);
+                        console.log('Sound enabled:', this.soundEnabled);
+                        
+                        // Vérifier si le son est activé
+                        if (!this.soundEnabled) {
+                            console.log('Son désactivé');
+                            return;
+                        }
+                
+                        // Sélectionner le fichier son approprié
+                        const soundFile = this.constructor.SOUND_FILES[this.currentPhase] || 'sounds/countdown.mp3';
+                        console.log(`Tentative de lecture du son pour la phase: ${this.currentPhase}`, soundFile);
+                
+                        // Vérifier l'existence du fichier son dans le cache
+                        console.log('Sound cache:', this.constructor.soundCache);
+                        console.log('Sound in cache:', this.constructor.soundCache?.[this.currentPhase]);
+                
+                        try {
+                            // Utiliser le son préchargé ou créer un nouvel objet Audio
+                            let audio;
+                            if (this.constructor.soundCache && this.constructor.soundCache[this.currentPhase]) {
+                                // Cloner le son préchargé pour éviter les problèmes de réutilisation
+                                audio = this.constructor.soundCache[this.currentPhase].cloneNode();
+                            } else {
+                                // Créer un nouvel objet Audio si pas de préchargement
+                                audio = new Audio(soundFile);
+                            }
+                
+                            // Configurer le volume
+                            audio.volume = 0.5;
+                
+                            // Gestionnaire d'erreurs audio
+                            audio.addEventListener('error', (e) => {
+                                console.error(`ERREUR CRITIQUE - Erreur audio pour ${soundFile} :`, e);
+                            });
+                
+                            // Vérifier si le fichier audio existe
+                            audio.addEventListener('loadedmetadata', () => {
+                                console.log(`Métadonnées chargées pour ${soundFile}`);
+                                console.log('Audio duration:', audio.duration);
+                                console.log('Audio src:', audio.src);
+                            });
+                
+                            audio.addEventListener('canplaythrough', () => {
+                                console.log(`Prêt à jouer ${soundFile}`);
+                            });
+                
+                            // Tenter de jouer le son
+                            const playPromise = audio.play();
+                            
+                            if (playPromise !== undefined) {
+                                playPromise.then(() => {
+                                    console.log(`SUCCÈS - Son ${soundFile} joué avec succès`);
+                                }).catch((error) => {
+                                    console.warn(`ÉCHEC - Impossible de jouer le son ${soundFile} :`, error);
+                                    
+                                    // Gestion détaillée des erreurs
+                                    switch(error.name) {
+                                        case 'NotAllowedError':
+                                            console.log('ERREUR - Lecture audio bloquée. Assurez-vous d\'une interaction utilisateur.');
+                                            break;
+                                        case 'NotSupportedError':
+                                            console.log('ERREUR - Format sonore non supporté.');
+                                            break;
+                                        default:
+                                            console.log('ERREUR - Erreur inattendue de lecture audio.');
+                                    }
+                                });
+                            }
+                        } catch (error) {
+                            console.error('ERREUR CRITIQUE - Erreur de configuration audio :', error);
+                        }
+                    }    static preloadSounds() {
+                            console.log('DEBUG: Preloading sounds');
+                            
+                            // Initialiser le cache de sons s'il n'existe pas
+                            if (!this.soundCache) {
+                                this.soundCache = {};
+                            }
+                    
+                            // Précharger chaque son
+                            Object.entries(this.SOUND_FILES).forEach(([key, path]) => {
+                                console.log(`Préchargement du son: ${key} - ${path}`);
+                                
+                                const audio = new Audio(path);
+                                audio.preload = 'auto';
+                                
+                                // Ajouter des écouteurs d'événements pour le débogage
+                                audio.addEventListener('loadedmetadata', () => {
+                                    console.log(`Métadonnées chargées pour ${key}:`, audio.duration);
+                                });
+                    
+                                audio.addEventListener('error', (e) => {
+                                    console.error(`Erreur de préchargement pour ${key}:`, e);
+                                });
+                    
+                                // Stocker l'audio dans le cache
+                                this.soundCache[key] = audio;
+                            });
+                    
+                            console.log('DEBUG: Sound cache après préchargement:', this.soundCache);
+                        }
+        }
+    }
+
     playSound() {
-        console.log('Playing sound for phase:', this.currentPhase);
+        // Vérifier si le son est activé
+        if (!this.soundEnabled) {
+            console.log('Son désactivé');
+            return;
+        }
+
+        // Sélectionner le fichier son approprié
+        const soundFile = this.constructor.SOUND_FILES[this.currentPhase] || 'sounds/countdown.mp3';
+        console.log('Fichier son sélectionné :', soundFile);
+
+        try {
+            // Utiliser le son préchargé ou créer un nouvel objet Audio
+            let audio;
+            if (this.constructor.soundCache && this.constructor.soundCache[this.currentPhase]) {
+                // Cloner le son préchargé pour éviter les problèmes de réutilisation
+                audio = this.constructor.soundCache[this.currentPhase].cloneNode();
+            } else {
+                // Créer un nouvel objet Audio si pas de préchargement
+                audio = new Audio(soundFile);
+            }
+
+            // Configurer le volume
+            audio.volume = 0.5;
+
+            // Gestionnaire d'erreurs audio
+            audio.addEventListener('error', (e) => {
+                console.error(`Erreur audio pour ${soundFile} :`, e);
+            });
+
+            // Tenter de jouer le son
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('Son joué avec succès');
+                }).catch((error) => {
+                    console.warn(`Impossible de jouer le son ${soundFile} :`, error);
+                    
+                    // Gestion détaillée des erreurs
+                    switch(error.name) {
+                        case 'NotAllowedError':
+                            console.log('Lecture audio bloquée. Assurez-vous d\'une interaction utilisateur.');
+                            break;
+                        case 'NotSupportedError':
+                            console.log('Format sonore non supporté.');
+                            break;
+                        default:
+                            console.log('Erreur inattendue de lecture audio.');
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Erreur de configuration audio :', error);
+        }
     }
 }
 
 // Initialiser le timer quand la page se charge
 document.addEventListener('DOMContentLoaded', () => {
     window.timer = new HIITTimer();
+    HIITTimer.preloadSounds();
 });
